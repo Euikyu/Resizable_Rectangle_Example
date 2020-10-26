@@ -24,5 +24,10 @@ namespace Resizable_Rectangle_Example
         {
             InitializeComponent();
         }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            uc.Width = double.Parse((sender as TextBox).Text);
+        }
     }
 }

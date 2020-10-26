@@ -4,9 +4,20 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Resizable_Rectangle_Example"
+        xmlns:u="clr-namespace:Resizable_Rectangle_Example.UserControls"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="27*"/>
+        </Grid.ColumnDefinitions>
+
+        <Canvas Width="500" Height="800">
+            <u:ResizableRectangle x:Name="uc" Canvas.Left="{Binding OriginX, RelativeSource={RelativeSource Self}}" Canvas.Top="{Binding OriginY, RelativeSource={RelativeSource Self}}" Width="100" Height="100" Margin="20"/>
+        </Canvas>
+        <Grid Grid.Column="1">
+            <TextBox KeyDown="TextBox_KeyDown"/>
+        </Grid>
     </Grid>
 </Window>
