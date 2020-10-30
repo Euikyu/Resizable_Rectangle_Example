@@ -109,6 +109,7 @@ namespace Resizable_Rectangle_Example.UserControls
                 SetValue(RotationProperty, value);
             }
         }
+
         public double Radian
         {
             get { return (double)GetValue(RadianProperty); }

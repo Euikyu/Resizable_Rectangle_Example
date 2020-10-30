@@ -6,14 +6,14 @@
              xmlns:local="clr-namespace:Resizable_Rectangle_Example.UserControls"
              mc:Ignorable="d" Name="uc"
              d:DesignHeight="100" d:DesignWidth="300"
-             MinWidth="5" MinHeight="5" Loaded="ResizableRectangle_Loaded">
+             MinWidth="20" MinHeight="20" Loaded="ResizableRectangle_Loaded">
     <UserControl.Resources>
         <SolidColorBrush x:Key="Rect_Stroke_Color" Color="#FF3A88C7"/>
         <FrameworkElement x:Key="Rotate_Cursor" Cursor="pack://application:,,,/Resources/refresh.cur"/>
     </UserControl.Resources>
     <ContentControl DataContext="{Binding ElementName=uc}"
                     Width="{Binding Width}" Height="{Binding Height}">
-        <Grid Name="Parent_Grid" Margin="-7.5">
+        <Grid Name="Parent_Grid">
             <Grid RenderTransform="{Binding RectRotateTransform}">
                 <Grid Name="Movable_Grid" Background="#11FFFFFF" Margin="8" MouseEnter="Rectangle_MouseEnter" MouseLeave="Rectangle_MouseLeave" MouseDown="Rectangle_MouseDown" MouseUp="Rectangle_MouseUp" MouseMove="Retangle_MouseMove"/>
                 <Rectangle Name="Size_W" Margin="4" HorizontalAlignment="Left" Stroke="{StaticResource Rect_Stroke_Color}" StrokeThickness="6"/>
