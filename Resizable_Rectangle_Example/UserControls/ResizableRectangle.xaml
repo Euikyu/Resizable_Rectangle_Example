@@ -5,31 +5,23 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Resizable_Rectangle_Example.UserControls"
              mc:Ignorable="d" Name="uc"
-             d:DesignHeight="100" d:DesignWidth="100"
-             MinWidth="20" MinHeight="20">
+             d:DesignHeight="100" d:DesignWidth="300"
+             MinWidth="5" MinHeight="5" Loaded="ResizableRectangle_Loaded">
     <UserControl.Resources>
-        <SolidColorBrush x:Key="Rect_Stroke_Color" Color="#FF5D88C7"/>
+        <SolidColorBrush x:Key="Rect_Stroke_Color" Color="#FF3A88C7"/>
         <FrameworkElement x:Key="Rotate_Cursor" Cursor="pack://application:,,,/Resources/refresh.cur"/>
     </UserControl.Resources>
     <ContentControl DataContext="{Binding ElementName=uc}"
                     Width="{Binding Width}" Height="{Binding Height}">
-        <Grid Name="Parent_Grid">
-            <Grid RenderTransformOrigin="0.5,0.5">
-                <Grid.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform/>
-                        <SkewTransform/>
-                        <RotateTransform Angle="{Binding Rotation}"/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </Grid.RenderTransform>
+        <Grid Name="Parent_Grid" Margin="-7.5">
+            <Grid RenderTransform="{Binding RectRotateTransform}">
                 <Grid Name="Movable_Grid" Background="#11FFFFFF" Margin="8" MouseEnter="Rectangle_MouseEnter" MouseLeave="Rectangle_MouseLeave" MouseDown="Rectangle_MouseDown" MouseUp="Rectangle_MouseUp" MouseMove="Retangle_MouseMove"/>
                 <Rectangle Name="Size_W" Margin="4" HorizontalAlignment="Left" Stroke="{StaticResource Rect_Stroke_Color}" StrokeThickness="6"/>
                 <Rectangle Name="Size_E" Margin="4" HorizontalAlignment="Right" Stroke="{StaticResource Rect_Stroke_Color}" StrokeThickness="6"/>
                 <Rectangle Name="Size_N" Margin="4" VerticalAlignment="Top" Stroke="{StaticResource Rect_Stroke_Color}" StrokeThickness="6"/>
                 <Rectangle Name="Size_S" Margin="4" VerticalAlignment="Bottom" Stroke="{StaticResource Rect_Stroke_Color}" StrokeThickness="6"/>
-                <Polygon HorizontalAlignment="Center" VerticalAlignment="Top" Width="25" Height="15" Points="1,1 1,14 24,7.5" Fill="{StaticResource Rect_Stroke_Color}" Stroke="DarkBlue" StrokeThickness="1"/>
-                <Polygon HorizontalAlignment="Left" VerticalAlignment="Center" Width="15" Height="25" Points="1,1 4,1 7.5,12 11,1 14,1 7.5,23" Fill="{StaticResource Rect_Stroke_Color}" Stroke="DarkBlue" StrokeThickness="1"/>
+                <Polygon HorizontalAlignment="Center" VerticalAlignment="Top" Width="25" Height="15" Points="1,1 1,4 12,7.5 1,11 1,14 23,7.5" Fill="{StaticResource Rect_Stroke_Color}" Stroke="DarkBlue" StrokeThickness="1"/>
+                <Polygon HorizontalAlignment="Left" VerticalAlignment="Center" Width="15" Height="25" Points="1,1 14,1 7.5,24" Fill="{StaticResource Rect_Stroke_Color}" Stroke="DarkBlue" StrokeThickness="1"/>
                 <Grid Name="Rotate_Grid" HorizontalAlignment="Right" VerticalAlignment="Center" Width="15" Height="15" Background="Red" MouseEnter="Rectangle_MouseEnter" MouseLeave="Rectangle_MouseLeave" MouseDown="Rectangle_MouseDown" MouseUp="Rectangle_MouseUp" MouseMove="Retangle_MouseMove">
                     <Ellipse Margin="1" Stroke="White"/>
                     <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="5" Height="7.5" Background="Red">
@@ -41,6 +33,7 @@
                 <Rectangle Name="Size_SW" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="15" Height="15" Stroke="{StaticResource Rect_Stroke_Color}" StrokeThickness="2" Fill="Red" MouseEnter="Rectangle_MouseEnter" MouseLeave="Rectangle_MouseLeave" MouseDown="Rectangle_MouseDown" MouseUp="Rectangle_MouseUp" MouseMove="Retangle_MouseMove"/>
                 <Rectangle Name="Size_SE" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="15" Height="15" Stroke="{StaticResource Rect_Stroke_Color}" StrokeThickness="2" Fill="Red" MouseEnter="Rectangle_MouseEnter" MouseLeave="Rectangle_MouseLeave" MouseDown="Rectangle_MouseDown" MouseUp="Rectangle_MouseUp" MouseMove="Retangle_MouseMove" />
             </Grid>
+
         </Grid>
     </ContentControl>
 </UserControl>

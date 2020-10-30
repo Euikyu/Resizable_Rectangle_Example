@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace Resizable_Rectangle_Example.UserControls
     /// <summary>
     /// ResizableRectangle.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class ResizableRectangle : UserControl
+    public partial class ResizableRectangle : UserControl, INotifyPropertyChanged
     {
         #region Fields
         private const double NW_DEFAULT_RADIAN = -135 * (Math.PI / 180);
@@ -30,31 +31,57 @@ namespace Resizable_Rectangle_Example.UserControls
 
         private bool m_IsCaptured;
         private Point m_LastMovePoint;
-        private Line m_RotationLine;
+        private Point m_LastSizePoint;
         private double m_Radian;
-
+        
+        private RotateTransform m_RectRotateTransform;
+        private double m_RectOriginX;
+        private double m_RectOriginY;
+        private double m_RectWidth;
+        private double m_RectHeight;
         #endregion
 
         #region Properties
+        public event PropertyChangedEventHandler PropertyChanged;
 
+        protected void RaisePropertyChanged(string propName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+        }
         #region Common Properties
 
+        public RotateTransform RectRotateTransform
+        {
+            get { return m_RectRotateTransform; }
+            set
+            {
+                m_RectRotateTransform = value;
+                RaisePropertyChanged(nameof(RectRotateTransform));
+            }
+        }
         #endregion
 
         #region Dependency Properties
         public static readonly DependencyProperty OriginXProperty =
             DependencyProperty.Register(nameof(OriginX), typeof(double), typeof(ResizableRectangle));
-
+        
         public static readonly DependencyProperty OriginYProperty =                
             DependencyProperty.Register(nameof(OriginY), typeof(double), typeof(ResizableRectangle));
 
         public static readonly DependencyProperty RotationProperty =
             DependencyProperty.Register(nameof(Rotation), typeof(double), typeof(ResizableRectangle));
 
+        public static readonly DependencyProperty RadianProperty =
+            DependencyProperty.Register(nameof(Radian), typeof(double), typeof(ResizableRectangle));
+
+
         public double OriginX
         {
             get { return (double)GetValue(OriginXProperty); }
-            set { SetValue(OriginXProperty, value); }
+            set
+            {
+                SetValue(OriginXProperty, value);
+            }
         }
 
         public double OriginY
@@ -66,7 +93,41 @@ namespace Resizable_Rectangle_Example.UserControls
         public double Rotation
         {
             get { return (double)GetValue(RotationProperty); }
-            set { SetValue(RotationProperty, value); }
+            set
+            {
+                m_Radian = value * (Math.PI / 180);
+                SetValue(RadianProperty, m_Radian);
+                if (RectRotateTransform is RotateTransform t)
+                {
+                    t.Angle = value;
+                }
+                else
+                {
+                    RectRotateTransform = new RotateTransform(value, this.Width / 2, this.Height / 2);
+                }
+                RaisePropertyChanged(nameof(RectRotateTransform));
+                SetValue(RotationProperty, value);
+            }
+        }
+        public double Radian
+        {
+            get { return (double)GetValue(RadianProperty); }
+            set
+            {
+                SetValue(RadianProperty, value);
+                m_Radian = value;
+                var deg = value * (180 / Math.PI);
+                if (RectRotateTransform is RotateTransform t)
+                {
+                    t.Angle = deg;
+                }
+                else
+                {
+                    RectRotateTransform = new RotateTransform(deg, this.Width / 2, this.Height / 2);
+                }
+                RaisePropertyChanged(nameof(RectRotateTransform));
+                SetValue(RotationProperty, deg);
+            }
         }
         #endregion
 
@@ -78,10 +139,32 @@ namespace Resizable_Rectangle_Example.UserControls
         }
 
         #region Methods
+        private void UpdateRect()
+        {
+            m_RectWidth = this.Width;
+            m_RectHeight = this.Height;
+            m_RectOriginX = this.OriginX;
+            m_RectOriginY = this.OriginY;
 
+            RectRotateTransform = new RotateTransform(Rotation, this.Width / 2, this.Height / 2);
+        }
+        private Point GetCenter()
+        {
+            return new Point(this.OriginX + this.Width / 2, this.OriginY + this.Height / 2);
+        }
+
+        private Point GetPointByRotation(Point rotatePoint, double rad, Point center)
+        {
+            return new Point(Math.Cos(rad) * rotatePoint.X - Math.Sin(rad) * rotatePoint.Y - center.X, Math.Sin(rad) * rotatePoint.X + Math.Cos(rad) * rotatePoint.Y - center.Y);
+        }
         #endregion
 
         #region Events
+        private void ResizableRectangle_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.UpdateRect();
+        }
+
         private void Rectangle_MouseEnter(object sender, MouseEventArgs e)
         {
             var control = sender as FrameworkElement;
@@ -117,8 +200,10 @@ namespace Resizable_Rectangle_Example.UserControls
         private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
         {
             var element = sender as IInputElement;
-            if(element != null)
+            if (element != null && this.Parent != null && this.Parent is Canvas canvas)
             {
+                m_LastSizePoint = e.GetPosition(canvas);
+                if (RectRotateTransform == null) this.UpdateRect();
                 element.CaptureMouse();
                 m_IsCaptured = true;
             }
@@ -131,10 +216,18 @@ namespace Resizable_Rectangle_Example.UserControls
                 Mouse.Capture(null);
                 m_IsCaptured = false;
                 m_LastMovePoint = new Point();
-                Parent_Grid.Children.Remove(m_RotationLine);
-                m_RotationLine = null;
+                m_LastSizePoint = new Point();
+                if (this.Width != m_RectWidth || this.Height != m_RectHeight)
+                {
+                    var centerOffset = this.GetCenter() - new Point(m_RectOriginX + m_RectWidth / 2, m_RectOriginY + m_RectHeight / 2);
+                    var destCenter = this.GetPointByRotation(new Point(centerOffset.X, centerOffset.Y), m_Radian, new Point()) - new Point(-(m_RectOriginX + m_RectWidth / 2), -(m_RectOriginY + m_RectHeight / 2));
+                    this.OriginX = destCenter.X - this.Width / 2;
+                    this.OriginY = destCenter.Y - this.Height / 2;
+                }
+                this.UpdateRect();
             }
         }
+
         private void Retangle_MouseMove(object sender, MouseEventArgs e)
         {
             if (m_IsCaptured)
@@ -146,90 +239,98 @@ namespace Resizable_Rectangle_Example.UserControls
                     if (control != null && this.Parent != null && this.Parent is Canvas canvas)
                     {
                         e.Handled = true;
+
+                        Vector sizeOffset = e.GetPosition(canvas) - m_LastSizePoint;
+                        Vector deltaSize = this.GetPointByRotation(new Point(sizeOffset.X, sizeOffset.Y), -m_Radian, new Point(RectRotateTransform.CenterX, RectRotateTransform.CenterY)) - new Point(-RectRotateTransform.CenterX, -RectRotateTransform.CenterY);
                         switch (control.Name)
                         {
                             case "Size_NW":
-                                Vector nwSizeOffset = e.GetPosition(canvas) - new Point(this.OriginX + 20, this.OriginY + 20); //this.GetPointByRotation(this.OriginX + 20, this.OriginY + 20);
-                                if (this.OriginX + nwSizeOffset.X > 0 && this.Width - nwSizeOffset.X > this.MinWidth)
+                                RectRotateTransform = new RotateTransform(Rotation, this.Width > this.MinWidth ? m_RectWidth / 2 - deltaSize.X : this.MinWidth / 2 - m_RectWidth / 2, this.Height > this.MinHeight ? m_RectHeight / 2 - deltaSize.Y : this.MinHeight / 2 - m_RectHeight / 2);
+                                if (m_RectWidth - deltaSize.X > this.MinWidth)
                                 {
-                                    this.OriginX += nwSizeOffset.X;
-                                    this.Width -= nwSizeOffset.X;
+                                    this.OriginX = m_RectOriginX + deltaSize.X;
+                                    this.Width = m_RectWidth - deltaSize.X;
                                 }
-                                if (this.OriginY + nwSizeOffset.Y > 0 && this.Height - nwSizeOffset.Y > this.MinHeight)
+                                else
                                 {
-                                    this.OriginY += nwSizeOffset.Y;
-                                    this.Height -= nwSizeOffset.Y;
+                                    this.Width = this.MinWidth;
+                                }
+                                if (m_RectHeight - deltaSize.Y > this.MinHeight)
+                                {
+                                    this.OriginY = m_RectOriginY + deltaSize.Y;
+                                    this.Height = m_RectHeight - deltaSize.Y;
+                                }
+                                else
+                                {
+                                    this.Height = this.MinHeight;
                                 }
                                 break;
                             case "Size_NE":
-                                Vector neSizeOffset = e.GetPosition(canvas) - new Point(this.Width + this.OriginX + 10, this.OriginY + 20);
-                                if (this.Width + neSizeOffset.X > this.MinWidth)
+                                RectRotateTransform = new RotateTransform(Rotation, m_RectWidth / 2, this.Height > this.MinHeight ? m_RectHeight / 2 - deltaSize.Y : this.MinHeight / 2 - m_RectHeight / 2);
+                                if (m_RectWidth + deltaSize.X > this.MinWidth)
                                 {
-                                    this.Width += neSizeOffset.X;
+                                    this.Width = m_RectWidth + deltaSize.X;
                                 }
-                                if (this.OriginY + neSizeOffset.Y > 0 && this.Height - neSizeOffset.Y > this.MinHeight)
+                                else
                                 {
-                                    this.OriginY += neSizeOffset.Y;
-                                    this.Height -= neSizeOffset.Y;
+                                    this.Width = this.MinWidth;
                                 }
-
+                                if (m_RectHeight - deltaSize.Y > this.MinHeight)
+                                {
+                                    this.OriginY = m_RectOriginY + deltaSize.Y;
+                                    this.Height = m_RectHeight - deltaSize.Y;
+                                }
+                                else
+                                {
+                                    this.Height = this.MinHeight;
+                                }
                                 break;
                             case "Size_SW":
-                                Vector swSizeOffset = e.GetPosition(canvas) - new Point(this.OriginX + 20, this.Height + this.OriginY + 10);
-                                if (this.OriginX + swSizeOffset.X > 0 && this.Width - swSizeOffset.X > this.MinWidth)
+                                RectRotateTransform = new RotateTransform(Rotation, this.Width > this.MinWidth ? m_RectWidth / 2 - deltaSize.X : this.MinWidth / 2 - m_RectWidth / 2, m_RectHeight / 2);
+                                if (m_RectWidth - deltaSize.X > this.MinWidth)
                                 {
-                                    this.OriginX += swSizeOffset.X;
-                                    this.Width -= swSizeOffset.X;
+                                    this.OriginX = m_RectOriginX + deltaSize.X;
+                                    this.Width = m_RectWidth - deltaSize.X;
                                 }
-                                if (this.Height + swSizeOffset.Y > this.MinHeight)
+                                else
                                 {
-                                    this.Height += swSizeOffset.Y;
+                                    this.Width = this.MinWidth;
+                                }
+                                if (m_RectHeight + deltaSize.Y > this.MinHeight)
+                                {
+                                    this.Height = m_RectHeight + deltaSize.Y;
+                                }
+                                else
+                                {
+                                    this.Height = this.MinHeight;
                                 }
                                 break;
                             case "Size_SE":
-                                Vector seSizeOffset = e.GetPosition(canvas) - new Point(this.Width + this.OriginX + 10, this.Height + this.OriginY + 10); //this.GetPointByRotation(this.Width + this.OriginX + 10, this.Height + this.OriginY + 10);
-                                if (this.Width + seSizeOffset.X > this.MinWidth) this.Width += seSizeOffset.X;
-                                if (this.Height + seSizeOffset.Y > this.MinHeight) this.Height += seSizeOffset.Y;
+                                RectRotateTransform = new RotateTransform(Rotation, m_RectWidth / 2, m_RectHeight / 2);
+                                if (m_RectWidth + deltaSize.X > this.MinWidth) this.Width = m_RectWidth + deltaSize.X;
+                                else this.Width = this.MinWidth;
+                                if (m_RectHeight + deltaSize.Y > this.MinHeight) this.Height = m_RectHeight + deltaSize.Y;
+                                else this.Height = this.MinHeight;
                                 break;
+
                             case "Movable_Grid":
-                                if(m_LastMovePoint.X == 0 && m_LastMovePoint.Y == 0)
+                                if (m_LastMovePoint.X == 0 && m_LastMovePoint.Y == 0)
                                 {
                                     m_LastMovePoint = e.GetPosition(canvas);
                                     break;
                                 }
                                 Vector moveOffset = e.GetPosition(canvas) - m_LastMovePoint;
-                                if (this.OriginX + moveOffset.X > 0) this.OriginX += moveOffset.X;
-                                if (this.OriginY + moveOffset.Y > 0) this.OriginY += moveOffset.Y;
+                                this.OriginX += moveOffset.X;
+                                this.OriginY += moveOffset.Y;
                                 m_LastMovePoint = e.GetPosition(canvas);
                                 break;
                             case "Rotate_Grid":
-                                //if(m_RotationLine == null)
-                                //{
-                                //    m_RotationLine = new Line {
-                                //        X1 = this.Width / 2,
-                                //        Y1 = this.Height / 2,
-                                //        X2 = e.GetPosition(canvas).X,
-                                //        Y2 = e.GetPosition(canvas).Y,
-                                //        Stroke = Brushes.Red,
-                                //        StrokeDashArray = DoubleCollection.Parse("4,3")
-                                //    };
-                                //    Parent_Grid.Children.Add(m_RotationLine);
-                                //    break;
-                                //}
-                                //m_RotationLine.X2 = e.GetPosition(canvas).X;
-                                //m_RotationLine.Y2 = e.GetPosition(canvas).Y;
-                                //m_Radian = Math.Atan2(m_RotationLine.Y2, m_RotationLine.X2);
-                                //Rotation = m_Radian * (180 / Math.PI);
+                                Radian = Math.Atan2(e.GetPosition(canvas).Y - GetCenter().Y, e.GetPosition(canvas).X - GetCenter().X);
                                 break;
                         }
                     }
                 }
             }
-        }
-
-        private Point GetPointByRotation(double x, double y)
-        {
-            return new Point(Math.Cos(m_Radian) * x - Math.Sin(m_Radian) * y, Math.Sin(m_Radian) * x + Math.Cos(m_Radian) * y);
         }
 
         #endregion
