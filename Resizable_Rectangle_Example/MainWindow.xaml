@@ -15,7 +15,7 @@
 
         <Canvas Width="{Binding ImageWidth}" Height="{Binding ImageHeight}">
             <Image Name="Origin_Image" Source="{Binding OriginSource}"/>
-            <u:ResizableRectangle x:Name="uc" Canvas.Left="{Binding OriginX, RelativeSource={RelativeSource Self}}" Canvas.Top="{Binding OriginY, RelativeSource={RelativeSource Self}}" OriginX="{Binding Region.LeftTopX}" OriginY="{Binding Region.LeftTopY}" Width="{Binding Region.Width}" Height="{Binding Region.Height}" Rotation="{Binding Region.Angle}" Visibility="Collapsed"/>
+            <u:ResizableRectangle x:Name="uc" Canvas.Left="{Binding OriginX, RelativeSource={RelativeSource Self}}" Canvas.Top="{Binding OriginY, RelativeSource={RelativeSource Self}}" OriginX="{Binding LeftTopX, Mode=TwoWay}" OriginY="{Binding LeftTopY, Mode=TwoWay}" Width="{Binding RegionWidth, Mode=TwoWay}" Height="{Binding RegionHeight, Mode=TwoWay}" Rotation="{Binding Angle, Mode=TwoWay}" Visibility="Collapsed"/>
         </Canvas>
         <Grid Grid.Column="1">
             <Button Content="Open Image" HorizontalAlignment="Left" Margin="30,117,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>

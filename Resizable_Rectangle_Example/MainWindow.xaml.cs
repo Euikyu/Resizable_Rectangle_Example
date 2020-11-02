@@ -56,6 +56,52 @@ namespace Resizable_Rectangle_Example
             set { m_Region = value; this.RaisePropertyChanged(nameof(Region)); }
         }
 
+        public double LeftTopX
+        {
+            get { return m_Region.LeftTopX; }
+            set
+            {
+                m_Region.LeftTopX = value;
+                RaisePropertyChanged(nameof(LeftTopX));
+            }
+        }
+        public double LeftTopY
+        {
+            get { return m_Region.LeftTopY; }
+            set
+            {
+                m_Region.LeftTopY = value;
+                RaisePropertyChanged(nameof(LeftTopY));
+            }
+        }
+        public double RegionWidth
+        {
+            get { return m_Region.Width; }
+            set
+            {
+                m_Region.Width = value;
+                RaisePropertyChanged(nameof(RegionWidth));
+            }
+        }
+        public double RegionHeight
+        {
+            get { return m_Region.Height; }
+            set
+            {
+                m_Region.Height = value;
+                RaisePropertyChanged(nameof(RegionHeight));
+            }
+        }
+        public double Angle
+        {
+            get { return m_Region.Angle; }
+            set
+            {
+                m_Region.Angle = value;
+                RaisePropertyChanged(nameof(Angle));
+            }
+        }
+
         public double ImageWidth { get; private set; }
         public double ImageHeight { get; private set; }
 
@@ -97,13 +143,6 @@ namespace Resizable_Rectangle_Example
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            Region.LeftTopX = uc.OriginX;
-            Region.LeftTopY = uc.OriginY;
-            Region.Width = uc.Width;
-            Region.Height = uc.Height;
-            Region.Angle = uc.Rotation;
-
-
             var bmp = Region.GetCropImage(m_CurrentBitmap);
             bmp.Save(@"D:\test1234.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
         }
