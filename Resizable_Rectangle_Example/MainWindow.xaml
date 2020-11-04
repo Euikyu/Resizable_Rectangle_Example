@@ -6,17 +6,26 @@
         xmlns:local="clr-namespace:Resizable_Rectangle_Example"
         xmlns:u="clr-namespace:Resizable_Rectangle_Example.UserControls"
         mc:Ignorable="d"
+        xmlns:z="clr-namespace:ZoomPanCon"
         Title="MainWindow" MinHeight="450" MinWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="24*"/>
             <ColumnDefinition Width="5*"/>
         </Grid.ColumnDefinitions>
-
-        <Canvas Width="{Binding ImageWidth}" Height="{Binding ImageHeight}">
-            <Image Name="Origin_Image" Source="{Binding OriginSource}"/>
-            <u:ResizableRectangle x:Name="uc" Canvas.Left="{Binding OriginX, RelativeSource={RelativeSource Self}}" Canvas.Top="{Binding OriginY, RelativeSource={RelativeSource Self}}" OriginX="{Binding LeftTopX, Mode=TwoWay}" OriginY="{Binding LeftTopY, Mode=TwoWay}" Width="{Binding RegionWidth, Mode=TwoWay}" Height="{Binding RegionHeight, Mode=TwoWay}" Rotation="{Binding Angle, Mode=TwoWay}" Visibility="Collapsed"/>
-        </Canvas>
+        <ScrollViewer x:Name="scrollViewer" CanContentScroll="True" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible">
+            <z:ZoomAndPanControl x:Name ="zoomAndPanControl" Background="WhiteSmoke"
+                                          MouseWheel="zoomAndPanControl_MouseWheel"
+                                          MouseDown="zoomAndPanControl_MouseDown"
+                                          MouseMove="zoomAndPanControl_MouseMove"
+                                          MouseUp="zoomAndPanControl_MouseUp">
+                <Canvas Name="ImgCanvas" Width="{Binding ImageWidth}" Height="{Binding ImageHeight}">
+                    <Image Name="Origin_Image" Source="{Binding OriginSource}"/>
+                    <u:ResizableRectangle x:Name="uc" Canvas.Left="{Binding OriginX, RelativeSource={RelativeSource Self}}" Canvas.Top="{Binding OriginY, RelativeSource={RelativeSource Self}}" OriginX="{Binding LeftTopX, Mode=TwoWay}" OriginY="{Binding LeftTopY, Mode=TwoWay}" Width="{Binding RegionWidth, Mode=TwoWay}" Height="{Binding RegionHeight, Mode=TwoWay}" Rotation="{Binding Angle, Mode=TwoWay}" Visibility="Collapsed"/>
+                </Canvas>
+            </z:ZoomAndPanControl>
+        </ScrollViewer>
+        
         <Grid Grid.Column="1">
             <Button Content="Open Image" HorizontalAlignment="Left" Margin="30,117,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
             <Button Content="Crop" HorizontalAlignment="Left" Margin="30,242,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>

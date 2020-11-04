@@ -39,6 +39,8 @@ namespace Resizable_Rectangle_Example.UserControls
         private double m_RectOriginY;
         private double m_RectWidth;
         private double m_RectHeight;
+
+        private Line m_RotationLine;
         #endregion
 
         #region Properties
@@ -46,7 +48,7 @@ namespace Resizable_Rectangle_Example.UserControls
 
         protected void RaisePropertyChanged(string propName)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+            if(PropertyChanged != null)PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propName));
         }
         #region Common Properties
 
@@ -56,23 +58,23 @@ namespace Resizable_Rectangle_Example.UserControls
             set
             {
                 m_RectRotateTransform = value;
-                RaisePropertyChanged(nameof(RectRotateTransform));
+                RaisePropertyChanged("RectRotateTransform");
             }
         }
         #endregion
 
         #region Dependency Properties
         public static readonly DependencyProperty OriginXProperty =
-            DependencyProperty.Register(nameof(OriginX), typeof(double), typeof(ResizableRectangle));
+            DependencyProperty.Register("OriginX", typeof(double), typeof(ResizableRectangle));
         
         public static readonly DependencyProperty OriginYProperty =                
-            DependencyProperty.Register(nameof(OriginY), typeof(double), typeof(ResizableRectangle));
+            DependencyProperty.Register("OriginY", typeof(double), typeof(ResizableRectangle));
 
         public static readonly DependencyProperty RotationProperty =
-            DependencyProperty.Register(nameof(Rotation), typeof(double), typeof(ResizableRectangle));
+            DependencyProperty.Register("Rotation", typeof(double), typeof(ResizableRectangle));
 
         public static readonly DependencyProperty RadianProperty =
-            DependencyProperty.Register(nameof(Radian), typeof(double), typeof(ResizableRectangle));
+            DependencyProperty.Register("Radian", typeof(double), typeof(ResizableRectangle));
 
 
         public double OriginX
@@ -97,7 +99,8 @@ namespace Resizable_Rectangle_Example.UserControls
             {
                 m_Radian = value * (Math.PI / 180);
                 SetValue(RadianProperty, m_Radian);
-                if (RectRotateTransform is RotateTransform t)
+                RotateTransform t = RectRotateTransform as RotateTransform;
+                if (t != null)
                 {
                     t.Angle = value;
                 }
@@ -105,7 +108,7 @@ namespace Resizable_Rectangle_Example.UserControls
                 {
                     RectRotateTransform = new RotateTransform(value, this.Width / 2, this.Height / 2);
                 }
-                RaisePropertyChanged(nameof(RectRotateTransform));
+                RaisePropertyChanged("RectRotateTransform");
                 SetValue(RotationProperty, value);
             }
         }
@@ -117,8 +120,9 @@ namespace Resizable_Rectangle_Example.UserControls
             {
                 SetValue(RadianProperty, value);
                 m_Radian = value;
-                var deg = value * (180 / Math.PI);
-                if (RectRotateTransform is RotateTransform t)
+                var deg = value * (180 / Math.PI); 
+                RotateTransform t = RectRotateTransform as RotateTransform;
+                if (t != null)
                 {
                     t.Angle = deg;
                 }
@@ -126,7 +130,7 @@ namespace Resizable_Rectangle_Example.UserControls
                 {
                     RectRotateTransform = new RotateTransform(deg, this.Width / 2, this.Height / 2);
                 }
-                RaisePropertyChanged(nameof(RectRotateTransform));
+                RaisePropertyChanged("RectRotateTransform");
                 SetValue(RotationProperty, deg);
             }
         }
@@ -201,12 +205,15 @@ namespace Resizable_Rectangle_Example.UserControls
         private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
         {
             var element = sender as IInputElement;
-            if (element != null && this.Parent != null && this.Parent is Canvas canvas)
+            Canvas canvas = this.Parent as Canvas;
+            if (element != null && this.Parent != null && canvas != null)
             {
                 m_LastSizePoint = e.GetPosition(canvas);
                 if (RectRotateTransform == null) this.UpdateRect();
                 element.CaptureMouse();
                 m_IsCaptured = true;
+
+                e.Handled = true;
             }
         }
 
@@ -218,6 +225,11 @@ namespace Resizable_Rectangle_Example.UserControls
                 m_IsCaptured = false;
                 m_LastMovePoint = new Point();
                 m_LastSizePoint = new Point();
+                if(m_RotationLine != null)
+                {
+                    (this.Parent as Canvas).Children.Remove(m_RotationLine);
+                    m_RotationLine = null;
+                }
                 if (this.Width != m_RectWidth || this.Height != m_RectHeight)
                 {
                     var centerOffset = this.GetCenter() - new Point(m_RectOriginX + m_RectWidth / 2, m_RectOriginY + m_RectHeight / 2);
@@ -226,6 +238,8 @@ namespace Resizable_Rectangle_Example.UserControls
                     this.OriginY = destCenter.Y - this.Height / 2;
                 }
                 this.UpdateRect();
+
+                e.Handled = true;
             }
         }
 
@@ -237,7 +251,8 @@ namespace Resizable_Rectangle_Example.UserControls
                 {
                     var control = sender as FrameworkElement;
 
-                    if (control != null && this.Parent != null && this.Parent is Canvas canvas)
+                    Canvas canvas = this.Parent as Canvas;
+                    if (control != null && this.Parent != null && canvas != null)
                     {
                         e.Handled = true;
 
@@ -326,6 +341,20 @@ namespace Resizable_Rectangle_Example.UserControls
                                 m_LastMovePoint = e.GetPosition(canvas);
                                 break;
                             case "Rotate_Grid":
+                                if(m_RotationLine == null)
+                                {
+                                    m_RotationLine = new Line
+                                    {
+                                        X1 = m_RectOriginX + m_RectWidth / 2,
+                                        Y1 = m_RectOriginY + m_RectHeight / 2,
+                                        Stroke = Brushes.Red,
+                                        StrokeThickness = 2,
+                                        StrokeDashArray = DoubleCollection.Parse("4,3")
+                                    };
+                                    canvas.Children.Add(m_RotationLine);
+                                }
+                                m_RotationLine.X2 = e.GetPosition(canvas).X;
+                                m_RotationLine.Y2 = e.GetPosition(canvas).Y;
                                 Radian = Math.Atan2(e.GetPosition(canvas).Y - GetCenter().Y, e.GetPosition(canvas).X - GetCenter().X);
                                 break;
                         }

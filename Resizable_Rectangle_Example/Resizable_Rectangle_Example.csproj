@@ -91,10 +91,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ZoomPanCon\AnimationHelper.cs" />
     <Compile Include="Inspect\CvsRectangleAffine.cs" />
+    <Compile Include="ZoomPanCon\MouseHandlingMode.cs" />
     <Compile Include="UserControls\ResizableRectangle.xaml.cs">
       <DependentUpon>ResizableRectangle.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ZoomPanCon\ZoomAndPanControl.cs" />
+    <Compile Include="ZoomPanCon\ZoomAndPanControl_IScrollInfo.cs" />
+    <Page Include="Themes\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
