@@ -91,6 +91,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Inspect\CvsEdgeDetect.cs" />
     <Compile Include="ZoomPanCon\AnimationHelper.cs" />
     <Compile Include="Inspect\CvsRectangleAffine.cs" />
     <Compile Include="ZoomPanCon\MouseHandlingMode.cs" />

@@ -22,11 +22,6 @@ namespace Resizable_Rectangle_Example.UserControls
     public partial class ResizableRectangle : UserControl, INotifyPropertyChanged
     {
         #region Fields
-        private const double NW_DEFAULT_RADIAN = -135 * (Math.PI / 180);
-        private const double NE_DEFAULT_RADIAN = -45 * (Math.PI / 180);
-        private const double SW_DEFAULT_RADIAN = 135 * (Math.PI / 180);
-        private const double SE_DEFAULT_RADIAN = 45 * (Math.PI / 180);
-
         private readonly object m_MoveLock = new object();
 
         private bool m_IsCaptured;
